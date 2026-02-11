@@ -1,10 +1,7 @@
 package com.chess.assistant
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.media.projection.MediaProjectionManager
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
@@ -21,19 +18,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.chess.assistant.core.capture.ScreenCaptureService
-import com.chess.assistant.core.chess.ChessBoard
 import com.chess.assistant.core.chess.PieceColor
 import com.chess.assistant.core.engine.EngineManager
 import com.chess.assistant.core.overlay.OverlayService
 import com.chess.assistant.core.recognition.ChessBoardRecognizer
 import com.chess.assistant.ui.theme.ChineseChessAssistantTheme
+import com.chess.assistant.utils.EngineInstaller
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /**
@@ -47,7 +41,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var engineManager: EngineManager
     private lateinit var recognizer: ChessBoardRecognizer
     private lateinit var captureService: ScreenCaptureService
-    private lateinit var engineDownloader: EngineDownloader
+    private lateinit var engineInstaller: EngineInstaller
 
     // 权限请求
     private val overlayPermissionLauncher = registerForActivityResult(
@@ -71,12 +65,13 @@ class MainActivity : ComponentActivity() {
         engineManager = EngineManager()
         recognizer = ChessBoardRecognizer(filesDir.absolutePath)
         captureService = ScreenCaptureService(this)
-        engineDownloader = EngineDownloader(this)
+        engineInstaller = EngineInstaller(this)
 
         setContent {
             ChineseChessAssistantTheme {
                 MainScreen(
                     engineManager = engineManager,
+                    engineInstaller = engineInstaller,
                     onStartOverlay = { showOverlay() },
                     onRequestOverlayPermission = { requestOverlayPermission() },
                     onRequestCapturePermission = { requestCapturePermission() },
@@ -127,7 +122,7 @@ class MainActivity : ComponentActivity() {
     private fun startScreenCapture(resultData: Intent?) {
         if (resultData != null) {
             scope.launch {
-                captureService.setMediaProjection(null) // 需要从 MediaProjectionManager 获取
+                captureService.setMediaProjection(null)
                 captureService.startCapture()
             }
         }
@@ -152,10 +147,8 @@ class MainActivity : ComponentActivity() {
     private fun analyzeCurrentScreen() {
         scope.launch {
             try {
-                // 捕获屏幕
                 val bitmap = captureService.captureFrame()
                 if (bitmap != null) {
-                    // 识别棋盘
                     val result = recognizer.recognizeBoard(bitmap)
                     if (result.success) {
                         Toast.makeText(
@@ -195,6 +188,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(
     engineManager: EngineManager,
+    engineInstaller: EngineInstaller,
     onStartOverlay: () -> Unit,
     onRequestOverlayPermission: () -> Unit,
     onRequestCapturePermission: () -> Unit,
@@ -256,22 +250,22 @@ fun MainScreen(
                             scope.launch {
                                 isAnalyzing = true
                                 
-                                // 检查引擎是否存在，如果不存在则下载
-                                if (!engineDownloader.isEngineExists()) {
+                                // 安装引擎（从 APK assets 提取）
+                                if (!engineInstaller.isEngineInstalled()) {
                                     Toast.makeText(
-                                        this@MainActivity,
-                                        "正在下载 Pikafish 引擎...",
+                                        context,
+                                        "正在安装 Pikafish 引擎...",
                                         Toast.LENGTH_SHORT
                                     ).show()
                                     
-                                    val result = engineDownloader.downloadEngine { progress ->
+                                    val result = engineInstaller.installEngine { progress ->
                                         // 可以在这里更新进度条
                                     }
                                     
                                     result.onFailure { error ->
                                         Toast.makeText(
-                                            this@MainActivity,
-                                            "下载引擎失败: ${error.message}",
+                                            context,
+                                            "安装引擎失败: ${error.message}",
                                             Toast.LENGTH_LONG
                                         ).show()
                                         isAnalyzing = false
@@ -280,7 +274,7 @@ fun MainScreen(
                                 }
                                 
                                 // 启动引擎
-                                val enginePath = engineDownloader.getEnginePath()
+                                val enginePath = engineInstaller.getEnginePath()
                                 val success = engineManager.start(enginePath)
                                 
                                 engineState = if (success) "已启动" else "启动失败"
@@ -288,7 +282,7 @@ fun MainScreen(
                                 
                                 if (success) {
                                     Toast.makeText(
-                                        this@MainActivity,
+                                        context,
                                         "引擎启动成功！",
                                         Toast.LENGTH_SHORT
                                     ).show()
@@ -396,7 +390,7 @@ fun MainScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "1. 点击右上角设置图标配置引擎\n" +
+                        text = "1. 点击启动引擎（自动从 APK 提取）\n" +
                                 "2. 授予悬浮窗权限\n" +
                                 "3. 启动悬浮窗\n" +
                                 "4. 打开其他象棋APP，悬浮窗会显示着法建议",
