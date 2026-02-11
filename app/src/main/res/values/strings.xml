@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">象棋助手</string>
+    <string name="engine_state">引擎状态: %1$s</string>
+    <string name="start_engine">启动引擎</string>
+    <string name="starting">启动中...</string>
+    <string name="engine_started">引擎已启动</string>
+    <string name="engine_failed">引擎启动失败</string>
+    <string name="select_color">选择你的颜色</string>
+    <string name="red_side">红方</string>
+    <string name="black_side">黑方</string>
+    <string name="screen_analysis">屏幕分析</string>
+    <string name="request_capture_permission">请求截屏权限</string>
+    <string name="analyze_screen">分析当前屏幕</string>
+    <string name="user_guide">使用说明</string>
+    <string name="guide_step1">1. 点击右上角设置图标配置引擎</string>
+    <string name="guide_step2">2. 授予悬浮窗权限</string>
+    <string name="guide_step3">3. 启动悬浮窗</string>
+    <string name="overlay_started">悬浮窗已显示</string>
+    <string name="overlay_permission_required">请先授予悬浮窗权限</string>
+    <string name="recognition_success">识别成功！棋子数量: %1$d</string>
+    <string name="recognition_failed">识别失败: %1$s</string>
+    <string name="capture_failed">无法捕获屏幕</string>
+    <string name="analysis_failed">分析失败: %1$s</string>
+    <string name="settings">设置</string>
+    <string name="overlay_window">悬浮窗</string>
+    <string name="suggested_move">建议着法</string>
+    <string name="move_from_to">%1$s (%2$d,%3$d) → (%4$d,%5$d)</string>
+    <string name="capture_piece">吃子: %1$s</string>
+    <string name="notification_channel_name">象棋助手</string>
+    <string name="notification_channel_description">悬浮窗服务的通知</string>
+    <string name="notification_title">象棋助手正在运行</string>
+    <string name="notification_text">点击查看悬浮窗状态</string>
+</resources>
