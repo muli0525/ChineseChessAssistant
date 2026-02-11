@@ -2,8 +2,8 @@ package com.chess.assistant.core.recognition
 
 import android.graphics.Bitmap
 import android.graphics.Color
-import com.chess.assistant.core.chess.ChessPiece
 import com.chess.assistant.core.chess.ChessBoard
+import com.chess.assistant.core.chess.ChessPiece
 import com.chess.assistant.core.chess.PieceColor
 import com.chess.assistant.core.chess.PieceType
 import com.chess.assistant.core.chess.Position
@@ -112,8 +112,11 @@ class ChessBoardRecognizer(private val dataDirPath: String) {
 
             // 创建棋盘
             val chessBoard = ChessBoard()
-            pieces.forEach { piece ->
-                chessBoard.addPiece(piece.type, piece.color, piece.position)
+            for (piece in pieces) {
+                // Only add pieces that have a recognized type
+                if (piece.type != null) {
+                    chessBoard.addPiece(piece.type, piece.color, piece.position)
+                }
             }
 
             // 清理资源

@@ -26,6 +26,7 @@ import com.chess.assistant.core.chess.ChessPiece
 import com.chess.assistant.core.chess.Move
 import com.chess.assistant.core.chess.PieceColor
 import com.chess.assistant.core.chess.Position
+
 /**
  * 象棋棋盘视图
  */
@@ -118,13 +119,14 @@ fun ChessBoardCanvas(
     selectedPosition: Position?,
     onSquareClick: (Position) -> Unit,
     onDragStart: (Position) -> Unit,
-    onDragEnd: (Position, Position) -> Unit,
+    onDragEnd: (Position?, Position?) -> Unit,
     onDrag: (Offset, Position) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
     val boardSize = with(density) { 360.dp.toPx() }
     val lineSpacing = boardSize / 9
+    val padding = 20f // Define padding here
 
     BoxWithConstraints(
         modifier = modifier
@@ -134,7 +136,7 @@ fun ChessBoardCanvas(
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(padding.dp) // Use dp suffix
                 .pointerInput(Unit) {
                     detectTapGestures { offset ->
                         val x = ((offset.x - padding) / lineSpacing).toInt().coerceIn(0, 8)
@@ -150,7 +152,7 @@ fun ChessBoardCanvas(
                             onDragStart(Position(x, y))
                         },
                         onDragEnd = {
-                            // Handle drag end
+                            onDragEnd(null, null)
                         },
                         onDrag = { change, _ ->
                             change.consume()
@@ -161,7 +163,6 @@ fun ChessBoardCanvas(
                     )
                 }
         ) {
-            val padding = 20f
             drawBoard(padding, lineSpacing)
             drawPieces(chessBoard, lineSpacing, padding, selectedPosition, suggestedMove)
             drawSuggestionArrow(suggestedMove, lineSpacing, padding)

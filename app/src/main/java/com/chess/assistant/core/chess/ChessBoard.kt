@@ -255,6 +255,7 @@ class ChessBoard {
     private fun validateXiangMove(move: Move): Boolean {
         val dx = kotlin.math.abs(move.to.x - move.from.x)
         val dy = kotlin.math.abs(move.to.y - move.from.y)
+        val pieceColor = getPieceAt(move.from)?.color ?: return false
 
         // 象走田字
         if (dx != 2 || dy != 2) {
@@ -262,7 +263,7 @@ class ChessBoard {
         }
 
         // 象不能过河
-        if (move.to.position.isAcrossRiver(getPieceAt(move.from)?.color ?: return false)) {
+        if (move.to.isAcrossRiver(pieceColor)) {
             return false
         }
 
@@ -290,7 +291,7 @@ class ChessBoard {
         }
 
         // 士只能在九宫内
-        if (!move.to.position.isInPalace(piece.color)) {
+        if (!move.to.isInPalace(piece.color)) {
             return false
         }
 
@@ -311,7 +312,7 @@ class ChessBoard {
         }
 
         // 将/帥只能在九宫内
-        if (!move.to.position.isInPalace(piece.color)) {
+        if (!move.to.isInPalace(piece.color)) {
             return false
         }
 
@@ -430,13 +431,18 @@ class ChessBoard {
         val playerPieces = _pieces.filter { it.color == color }
 
         return playerPieces.any { piece ->
-            Position(0, 0)..Position(8, 9)
-                .flatMap { target ->
-                    listOf(Move(piece.position, target, piece))
+            // Generate all possible target positions on the board
+            val allPositions = mutableListOf<Position>()
+            for (x in 0..8) {
+                for (y in 0..9) {
+                    allPositions.add(Position(x, y))
                 }
-                .any { move ->
-                    isValidMove(move)
-                }
+            }
+
+            allPositions.any { target ->
+                val move = Move(piece.position, target, piece)
+                isValidMove(move)
+            }
         }
     }
 
@@ -468,11 +474,16 @@ class ChessBoard {
      * 获取所有合法走法
      */
     fun getValidMoves(piece: ChessPiece): List<Move> {
-        return Position(0, 0)..Position(8, 9)
-            .map { target ->
-                Move(piece.position, target, piece)
+        val allPositions = mutableListOf<Position>()
+        for (x in 0..8) {
+            for (y in 0..9) {
+                allPositions.add(Position(x, y))
             }
-            .filter { isValidMove(it) }
+        }
+
+        return allPositions.map { target ->
+            Move(piece.position, target, piece)
+        }.filter { isValidMove(it) }
     }
 
     /**

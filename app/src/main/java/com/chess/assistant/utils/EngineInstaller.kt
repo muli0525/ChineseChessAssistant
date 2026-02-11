@@ -50,7 +50,7 @@ class EngineInstaller(private val context: Context) {
     ): Result<File> = withContext(Dispatchers.IO) {
         try {
             val engineFile = getEngineFile()
-            
+
             // 如果引擎已安装且有效，直接返回
             if (isEngineInstalled()) {
                 Log.d(TAG, "引擎已安装: ${engineFile.absolutePath}")
@@ -59,20 +59,24 @@ class EngineInstaller(private val context: Context) {
 
             // 从 assets 提取引擎
             Log.d(TAG, "正在从 assets 提取引擎...")
-            
+
+            // 获取引擎文件大小
+            val assetSize = try {
+                context.assets.openFd(ENGINE_ASSET_PATH).use { it.length }
+            } catch (e: Exception) {
+                0L
+            }
+
             context.assets.open(ENGINE_ASSET_PATH).use { input ->
                 FileOutputStream(engineFile).use { output ->
                     val buffer = ByteArray(8192)
                     var bytesRead: Int
                     var totalBytesRead = 0L
-                    
-                    // 获取引擎文件大小
-                    val assetSize = context.assets.openFd(ENGINE_ASSET_PATH).use { it.length() }
-                    
+
                     while (input.read(buffer).also { bytesRead = it } != -1) {
                         output.write(buffer, 0, bytesRead)
                         totalBytesRead += bytesRead
-                        
+
                         // 更新进度
                         if (assetSize > 0) {
                             val progress = ((totalBytesRead * 100) / assetSize).toInt()
@@ -84,10 +88,10 @@ class EngineInstaller(private val context: Context) {
 
             // 设置执行权限
             engineFile.setExecutable(true)
-            
+
             Log.d(TAG, "引擎安装完成: ${engineFile.absolutePath}")
             Log.d(TAG, "引擎文件大小: ${engineFile.length()} bytes")
-            
+
             if (isEngineInstalled()) {
                 Result.success(engineFile)
             } else {

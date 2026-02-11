@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
  */
 class MainActivity : ComponentActivity() {
 
-    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private val activityScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     // 核心组件
     private lateinit var engineManager: EngineManager
@@ -83,7 +83,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        scope.cancel()
+        activityScope.cancel()
         engineManager.shutdown()
     }
 
@@ -121,7 +121,7 @@ class MainActivity : ComponentActivity() {
      */
     private fun startScreenCapture(resultData: Intent?) {
         if (resultData != null) {
-            scope.launch {
+            activityScope.launch {
                 captureService.setMediaProjection(null)
                 captureService.startCapture()
             }
@@ -145,7 +145,7 @@ class MainActivity : ComponentActivity() {
      * 分析当前屏幕
      */
     private fun analyzeCurrentScreen() {
-        scope.launch {
+        activityScope.launch {
             try {
                 val bitmap = captureService.captureFrame()
                 if (bitmap != null) {
@@ -195,8 +195,9 @@ fun MainScreen(
     onAnalyzeBoard: () -> Unit
 ) {
     val context = LocalContext.current
+    val activityScope = rememberCoroutineScope()
     var showSettings by remember { mutableStateOf(false) }
-    var engineState by remember { mutableStateOf<String>("未启动") }
+    var engineState by remember { mutableStateOf("未启动") }
     var selectedColor by remember { mutableStateOf(PieceColor.RED) }
     var isAnalyzing by remember { mutableStateOf(false) }
 
@@ -247,9 +248,9 @@ fun MainScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
                         onClick = {
-                            scope.launch {
+                            activityScope.launch {
                                 isAnalyzing = true
-                                
+
                                 // 安装引擎（从 APK assets 提取）
                                 if (!engineInstaller.isEngineInstalled()) {
                                     Toast.makeText(
@@ -257,11 +258,11 @@ fun MainScreen(
                                         "正在安装 Pikafish 引擎...",
                                         Toast.LENGTH_SHORT
                                     ).show()
-                                    
+
                                     val result = engineInstaller.installEngine { progress ->
                                         // 可以在这里更新进度条
                                     }
-                                    
+
                                     result.onFailure { error ->
                                         Toast.makeText(
                                             context,
@@ -272,14 +273,14 @@ fun MainScreen(
                                         return@launch
                                     }
                                 }
-                                
+
                                 // 启动引擎
                                 val enginePath = engineInstaller.getEnginePath()
                                 val success = engineManager.start(enginePath)
-                                
+
                                 engineState = if (success) "已启动" else "启动失败"
                                 isAnalyzing = false
-                                
+
                                 if (success) {
                                     Toast.makeText(
                                         context,
