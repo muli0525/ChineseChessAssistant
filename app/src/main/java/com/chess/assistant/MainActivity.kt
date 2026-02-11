@@ -47,6 +47,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var engineManager: EngineManager
     private lateinit var recognizer: ChessBoardRecognizer
     private lateinit var captureService: ScreenCaptureService
+    private lateinit var engineDownloader: EngineDownloader
 
     // 权限请求
     private val overlayPermissionLauncher = registerForActivityResult(
@@ -70,6 +71,7 @@ class MainActivity : ComponentActivity() {
         engineManager = EngineManager()
         recognizer = ChessBoardRecognizer(filesDir.absolutePath)
         captureService = ScreenCaptureService(this)
+        engineDownloader = EngineDownloader(this)
 
         setContent {
             ChineseChessAssistantTheme {
@@ -253,10 +255,44 @@ fun MainScreen(
                         onClick = {
                             scope.launch {
                                 isAnalyzing = true
+                                
+                                // 检查引擎是否存在，如果不存在则下载
+                                if (!engineDownloader.isEngineExists()) {
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        "正在下载 Pikafish 引擎...",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    
+                                    val result = engineDownloader.downloadEngine { progress ->
+                                        // 可以在这里更新进度条
+                                    }
+                                    
+                                    result.onFailure { error ->
+                                        Toast.makeText(
+                                            this@MainActivity,
+                                            "下载引擎失败: ${error.message}",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                        isAnalyzing = false
+                                        return@launch
+                                    }
+                                }
+                                
                                 // 启动引擎
-                                val success = engineManager.start("/data/data/com.chess.assistant/pikafish")
+                                val enginePath = engineDownloader.getEnginePath()
+                                val success = engineManager.start(enginePath)
+                                
                                 engineState = if (success) "已启动" else "启动失败"
                                 isAnalyzing = false
+                                
+                                if (success) {
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        "引擎启动成功！",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
                         },
                         enabled = !isAnalyzing
