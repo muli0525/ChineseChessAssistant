@@ -27,11 +27,31 @@ jobs:
 
     - name: Download Pikafish Engine
       run: |
+        # Create directory
         mkdir -p app/src/main/assets/engines
+        
+        # Download engine with redirect handling
         cd app/src/main/assets/engines
-        wget -q https://github.com/official-pikafish/Pikafish/releases/latest/download/pikafish-android-arm64 -O pikafish
+        
+        # Try different download methods
+        echo "Downloading Pikafish engine..."
+        
+        # Method 1: Use curl with -L to follow redirects
+        curl -L -o pikafish "https://github.com/official-pikafish/Pikafish/releases/latest/download/pikafish-android-arm64"
+        
+        # Check if download was successful
+        if [ ! -f pikafish ] || [ ! -s pikafish ]; then
+            echo "First download failed, trying alternative method..."
+            # Method 2: Direct download with wget
+            wget -O pikafish "https://github.com/official-pikafish/Pikafish/releases/download/v3/pikafish-android-arm64"
+        fi
+        
+        # Set executable permission
         chmod +x pikafish
+        
+        # Verify file
         ls -la pikafish
+        file pikafish
 
     - name: Install Dependencies
       run: |
