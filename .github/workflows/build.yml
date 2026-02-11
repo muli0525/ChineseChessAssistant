@@ -59,10 +59,14 @@ jobs:
         $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
     - name: Build Debug APK
-      run: ./gradlew assembleDebug --no-daemon
+      run: |
+        chmod +x ./gradlew
+        ./gradlew assembleDebug --no-daemon
 
     - name: Build Release APK
-      run: ./gradlew assembleRelease --no-daemon
+      run: |
+        chmod +x ./gradlew
+        ./gradlew assembleRelease --no-daemon
       env:
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
