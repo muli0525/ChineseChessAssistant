@@ -14,7 +14,6 @@ import org.opencv.android.Utils
 import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
-import org.opencv.core.MatOfPoint
 import org.opencv.core.Point
 import org.opencv.core.Scalar
 import org.opencv.core.Size
@@ -200,7 +199,8 @@ class ChessBoardRecognizer(private val dataDirPath: String) {
         val pieces = mutableListOf<DetectedPiece>()
 
         // 使用霍夫圆检测圆形区域（棋子）
-        val circles = MatOfPoint()
+        // HoughCircles 返回 Mat，每行包含 x, y, radius
+        val circles = Mat()
         Imgproc.HoughCircles(
             mat,
             circles,
@@ -213,13 +213,14 @@ class ChessBoardRecognizer(private val dataDirPath: String) {
             mat.height() / 12
         )
 
-        val circleArray = circles.toArray()
-
         // 将检测到的圆映射到最近的网格位置
-        for (circle in circleArray) {
-            val centerX = circle[0].toInt()
-            val centerY = circle[1].toInt()
-            val radius = circle[2].toInt()
+        for (i in 0 until circles.cols()) {
+            val circleData = FloatArray(3)
+            circles.get(0, i, circleData)
+
+            val centerX = circleData[0].toInt()
+            val centerY = circleData[1].toInt()
+            val radius = circleData[2].toInt()
 
             // 找到最近的网格位置
             val gridPos = findNearestGridPosition(centerX, centerY, gridPositions)

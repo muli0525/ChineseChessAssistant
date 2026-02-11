@@ -28,6 +28,7 @@ import com.chess.assistant.utils.EngineInstaller
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /**
@@ -84,7 +85,10 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         activityScope.cancel()
-        engineManager.shutdown()
+        // shutdown() is suspend, use launch to call it
+        activityScope.launch(Dispatchers.IO) {
+            engineManager.shutdown()
+        }
     }
 
     /**
