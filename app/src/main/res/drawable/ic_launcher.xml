@@ -24,21 +24,18 @@
                          M28,40 L56,40 L28,54 L56,68
                          M52,40 L80,40 L52,54 L80,68"/>
 
-    <!-- 棋子 -->
-    <circle
-        android:fillColor="#FFCC00"
-        android:strokeColor="#000000"
-        android:strokeWidth="2"
-        android:centerX="28"
-        android:centerY="28"
-        android:radius="10"/>
-
-    <circle
+    <!-- 棋子 (红方 - 用圆表示) -->
+    <path
         android:fillColor="#FFCC00"
         android:strokeColor="#FF0000"
         android:strokeWidth="2"
-        android:centerX="80"
-        android:centerY="80"
-        android:radius="10"/>
+        android:pathData="M28,18 a10,10 0 1,0 0.001,0"/>
+
+    <!-- 棋子 (黑方 - 用圆表示) -->
+    <path
+        android:fillColor="#FFCC00"
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:pathData="M80,70 a10,10 0 1,0 0.001,0"/>
 
 </vector>
